@@ -1,4 +1,4 @@
-import time, sched, datetime
+import time, sched, datetime, os
 from fastapi import FastAPI, Request, Header, HTTPException
 from fastapi.responses import HTMLResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
@@ -171,4 +171,4 @@ async def clearUids(request: Request):
 scheduler.add_job(pollConnectedClients, 'interval', seconds=1)
 scheduler.start()
 
-uvicorn.run(app, host='0.0.0.0', port=8000)    
+uvicorn.run(app, host='0.0.0.0', port=os.environ['PORT'])    
