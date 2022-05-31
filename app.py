@@ -53,7 +53,7 @@ def forbiddenResponse(request: Request):
     return templates.TemplateResponse('403.html', context={'request': request}, status_code=403)
 
 def pollConnectedClients():
-    print("Polling!")
+#    print("Polling!")
     for x in announcer.connected_uids:
         lastRefreshed = x.get('lastRefreshed')
         if(int((time.time() - lastRefreshed)) > 9):
@@ -171,4 +171,5 @@ async def clearUids(request: Request):
 scheduler.add_job(pollConnectedClients, 'interval', seconds=1)
 scheduler.start()
 
-uvicorn.run(app, host='0.0.0.0', port=os.environ['PORT'])    
+if __name__ == '__main__':
+    uvicorn.run(app, host='0.0.0.0', port=os.environ['PORT'])    
