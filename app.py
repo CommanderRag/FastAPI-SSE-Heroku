@@ -53,7 +53,7 @@ def forbiddenResponse(request: Request):
     return templates.TemplateResponse('403.html', context={'request': request}, status_code=403)
 
 def pollConnectedClients():
-    print("Polling!")
+    #print("Polling!")
     for x in announcer.connected_uids:
         lastRefreshed = x.get('lastRefreshed')
         print(x, lastRefreshed)
@@ -85,11 +85,12 @@ async def streamMessage(uid, uids, request):
             #     announcer.clearMessage()  
 
         message = announcer.getMessage()      
-        print(message)
+        print("Going to yield", message)
         if(message == BREAK_CONN):
             break
-
+        print("Going to yield", message)
         if(message != None):
+            print("Going to yield", message)
             announcer.clearMessage()
             yield message
             time.sleep(0.9)
