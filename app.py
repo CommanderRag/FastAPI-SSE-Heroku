@@ -68,7 +68,7 @@ async def streamMessage(uid, uids, request):
             print(uid + " disconnected!")
             announcer.clientDisconnected(uid)
             break
-
+        
         if(uid in uids):
             messages = messageq.getInQueue(uid)
             if(messages != None):
