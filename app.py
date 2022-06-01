@@ -56,6 +56,7 @@ def pollConnectedClients():
 #    print("Polling!")
     for x in announcer.connected_uids:
         lastRefreshed = x.get('lastRefreshed')
+        print(x, lastRefreshed)
         if(int((time.time() - lastRefreshed)) > 9):
             announcer.clientDisconnected(x.get('uid'))
             print("Removing", x)       
@@ -122,7 +123,7 @@ async def stream(request: Request):
 
 
     announcer.clientConnected(uid)
-
+    print(announcer.connected_uids)
     event_generator = streamMessage(uid=uid, request=request, uids=uids)
     return EventSourceResponse(event_generator)
 
