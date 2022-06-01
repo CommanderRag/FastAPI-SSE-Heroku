@@ -79,18 +79,17 @@ async def streamMessage(uid, uids, request):
                 
                 messageq.removeFromQueue(uid)
 
-            # if(messages == None and announcer.getMessage() != None):
-            #     yield announcer.getMessage()  
-            #     time.sleep(1)
-            #     announcer.clearMessage()  
+            if(messages == None and announcer.getMessage() != None):
+                yield announcer.getMessage()  
+                time.sleep(1)
+                announcer.clearMessage()  
 
         message = announcer.getMessage()      
-        print("Going to yield", message)
+
         if(message == BREAK_CONN):
             break
-        print("Going to yield", message)
+
         if(message != None):
-            print("Going to yield", message)
             announcer.clearMessage()
             yield message
             time.sleep(0.9)
