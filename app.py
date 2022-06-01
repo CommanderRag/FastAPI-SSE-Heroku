@@ -53,7 +53,7 @@ def forbiddenResponse(request: Request):
     return templates.TemplateResponse('403.html', context={'request': request}, status_code=403)
 
 def pollConnectedClients():
-#    print("Polling!")
+    print("Polling!")
     for x in announcer.connected_uids:
         lastRefreshed = x.get('lastRefreshed')
         print(x, lastRefreshed)
@@ -68,8 +68,7 @@ async def streamMessage(uid, uids, request):
             print(uid + " disconnected!")
             announcer.clientDisconnected(uid)
             break
-        print(uid in uids)
-        print(messageq.getInQueue(uid))
+        
         if(uid in uids):
             messages = messageq.getInQueue(uid)
             if(messages != None):
@@ -79,6 +78,11 @@ async def streamMessage(uid, uids, request):
                     time.sleep(0.9)  
                 
                 messageq.removeFromQueue(uid)
+
+            if(messages == None and announcer.getMessage() != None):
+                yield announcer.getMessage()  
+                time.sleep(1)
+                announcer.clearMessage()  
 
         message = announcer.getMessage()      
 

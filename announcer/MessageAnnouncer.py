@@ -27,7 +27,7 @@ class MessageAnnouncer:
 
         for i in reversed(range(len(self.listeners))):
             try:
-                self.listeners[i].put_nowait(message)
+                self.listeners[i].put(message)
             except queue.Full:
                 print("Removing", i)
                 del self.listeners[i]
