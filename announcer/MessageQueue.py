@@ -11,7 +11,7 @@ class MessageQueue:
                 msg_list.append(message)
                 print("Messages putInQueue", self.queue)
                 return
-        self.queue.append({'uid': uid, 'message': [message]})        
+        self.queue.append({'uid': str(uid).strip(), 'message': [message]})        
         
 
     def getInQueue(self, uid):

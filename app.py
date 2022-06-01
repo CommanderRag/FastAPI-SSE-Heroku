@@ -172,4 +172,4 @@ scheduler.add_job(pollConnectedClients, 'interval', seconds=1)
 scheduler.start()
 
 if __name__ == '__main__':
-    uvicorn.run(app, host='0.0.0.0', port=os.environ['PORT'])    
+    uvicorn.run(app, host='0.0.0.0', port=os.environ.get('PORT') or 8000)    
