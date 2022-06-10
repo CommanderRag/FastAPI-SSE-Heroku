@@ -5,6 +5,7 @@ class MessageAnnouncer:
     def __init__(self):
         self.listeners = []
         self.connected_uids = []
+        self.known_uids = []
 
     def clientConnected(self, uid: str):
         for clients in self.connected_uids:
@@ -43,3 +44,14 @@ class MessageAnnouncer:
         for x in self.connected_uids:
             if(x.get('uid') == uid):
                 x['lastRefreshed'] = time.time()
+
+
+    def appendUid(self, uid: str):
+        if(uid not in self.known_uids):
+            self.known_uids.append(uid)   
+
+    def getKnownUids(self):
+        return self.known_uids
+
+    def clearKnownUids(self):
+        self.known_uids.clear()            

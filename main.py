@@ -10,6 +10,8 @@ from announcer2 import MessageQueue
 
 AUTHORIZATION = 'za-warudo'
 
+DISCONNECT_THRESHOLD = 6 # 6 seconds
+
 announcer = MessageAnnouncer.MessageAnnouncer()
 messageq = MessageQueue.MessageQueue()
 
@@ -25,7 +27,7 @@ def pollConnectedClients():
             lastRefreshed = x.get('lastRefreshed')
             print(x)
 
-            if(int((time.time() - lastRefreshed)) > 9):
+            if(int((time.time() - lastRefreshed)) > DISCONNECT_THRESHOLD): #wait for 6 seconds and announce uid disconnected.
                 announcer.clientDisconnected(x.get('uid'))
                 print("Removing", x)  
 
@@ -33,36 +35,22 @@ def pollConnectedClients():
 
 
 async def queueMessageForNotConnectedClients(message: str):
-    f = open('uids.txt', 'r')
-
-    readUids = f.readlines()
-    uids = []
-    f.close()
-
-
-    for uid in readUids:
-        uids.append(str(uid).strip())
-
-    for uid in uids:
+    for uid in announcer.getKnownUids():
         if(uid not in announcer.connected_uids):
             messageq.addToQueue(uid, message)
      
 
-
 def forbiddenResponse(request: Request):
     return templates.TemplateResponse('403.html', context={'request': request}, status_code=403)
 
-async def streamMessage(uid: str):
+async def streamMessage(uid: str, request: Request):
     while True:
 
-        announcer.refresh(uid)
+        if(await request.is_disconnected()):
+            announcer.clientDisconnected(uid)
+            break
 
-        # if(uid in announcer.connected_uids):
-        #     data = messageq.getMessage(uid)
-        #     if(data != None):
-        #         messages = data.get('messages')
-        #         for message in messages:
-        #             yield message
+        announcer.refresh(uid)
 
 
         for connected in announcer.connected_uids:
@@ -93,12 +81,12 @@ async def streamMessage(uid: str):
         if(message):
             print("Announcing", message)
             yield message
-            time.sleep(1)
+            time.sleep(1.2)
 
             announcer.clearMessage()
 
 
-        time.sleep(3)        
+        time.sleep(1.8)        
 
 @app.get('/stream', response_class=HTMLResponse)
 async def stream(request: Request):
@@ -107,34 +95,13 @@ async def stream(request: Request):
     uid = request.headers.get('Code', None)
 
     if(auth == None or uid == None or auth != AUTHORIZATION):
-        return forbiddenResponse(request)    
+        return forbiddenResponse(request)      
 
-
-    with open('uids.txt', 'r') as f:
-        readUids = f.readlines()
-        uids = []
-        #strip off new lines
-
-        uid = uid.strip()        
-
-        for uid in readUids:
-            uids.append(str(uid).strip())
-
-        print("Uids", uids)
-
-        if(uids == None or len(uids) == 0):
-            with open('uids.txt', 'w+') as fw:
-                fw.write(str(uid) + "\n")
-
-        else:
-            if(uid not in uids):
-                with open('uids.txt', 'a') as fw:
-                    fw.write(str(uid) + "\n")   
-
+    announcer.appendUid(uid)
 
     announcer.clientConnected(uid)                
 
-    event_generator = streamMessage(uid=uid)
+    event_generator = streamMessage(uid=uid, request=request)
     return EventSourceResponse(event_generator)
 
 
@@ -160,6 +127,9 @@ async def ping(request: Request, response_class=HTMLResponse):
         return forbiddenResponse(request)
 
     announcer.setMessage('Pong!')
+
+    await queueMessageForNotConnectedClients('Pong!')
+    
     return PlainTextResponse('Success!')
 
 
@@ -170,8 +140,7 @@ async def clearUids(request: Request, response_class=HTMLResponse):
     if(auth == None or auth != AUTHORIZATION):
         return forbiddenResponse(request)
 
-    with open('uids.txt', 'w+') as f:
-        pass
+    announcer.clearKnownUids()
 
     return PlainTextResponse('Success!')
 

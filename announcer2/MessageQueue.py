@@ -25,8 +25,8 @@ class MessageQueue:
 
     def removeFromQueue(self, uid):
         for i in self.queue:
-            i = dict(i)
-            del self.queue[i]
+            if(i.get('uid') == uid):
+                self.queue.remove(i)
 
     def clearQueue(self):
         self.queue.clear()
