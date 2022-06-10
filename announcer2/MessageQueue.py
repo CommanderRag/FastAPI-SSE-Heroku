@@ -6,14 +6,15 @@ class MessageQueue:
     def addToQueue(self, uid: str, message:str):
         print("Adding to queue", uid, message)
         alreadyInQueue = False
-        for msg in self.queue:
-            print(msg)
-            if(msg.get('uid') == uid):
-                messages = list(msg.get('messages'))
-                messages.append(str(message))
-                alreadyInQueue = True   
+        for i in range(len(self.queue)):
 
-        if(not alreadyInQueue):
+            if(self.queue[i]['uid'] == uid):
+                self.queue[i]['messages'].append(str(message)) 
+                alreadyInQueue = True
+
+
+        if(alreadyInQueue == False):
+            print("Adding", message)
             self.queue.append({'uid': str(uid), 'messages': [str(message)]})
 
     def getInQueue(self, uid):

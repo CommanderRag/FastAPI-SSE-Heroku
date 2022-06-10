@@ -34,12 +34,26 @@ def pollConnectedClients():
 
 
 def queueMessageForNotConnectedClients(message: str):
-    print("Here 1")
-    for uid in announcer.known_uids:
-        print("Here 2", uid)
-        if(uid not in announcer.connected_uids):
-            print("Queueing message", message, "For uid", uid)
-            messageq.addToQueue(uid, message)
+
+    with open('uids.txt', 'r') as f:
+        readUids = f.read()
+        readUids = readUids.split('\n')
+
+        uids = []
+        for uid in readUids:
+            if(uid):
+                uids.append(uid)
+
+
+        for uid in uids:
+            if(uid not in announcer.connected_uids):
+                messageq.addToQueue(uid, message)
+
+    # for uid in announcer.known_uids:
+    #     print("Here 2", uid)
+    #     if(uid not in announcer.connected_uids):
+    #         print("Queueing message", message, "For uid", uid)
+    #         messageq.addToQueue(uid, message)
      
 
 def forbiddenResponse(request: Request):
@@ -61,7 +75,7 @@ async def streamMessage(uid: str, request: Request):
             
                 
             if(con_uid == uid and connected.get('newlyConnected') == True):
-                yield "Hello"
+                yield "Welcome!"
                 announcer.switchNewlyConnected(uid)
                 data = messageq.getInQueue(uid)
 
@@ -69,9 +83,9 @@ async def streamMessage(uid: str, request: Request):
                     messages = list(data.get('messages'))
                     if(len(messages) == 0):
                         break
-
-                    for message in messages:
-                        yield message
+                    print(messages)
+                    for i in range(len(messages)):
+                        yield messages[i]
                         time.sleep(1.2)
 
                     messageq.removeFromQueue(uid)    

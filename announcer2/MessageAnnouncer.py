@@ -5,7 +5,6 @@ class MessageAnnouncer:
     def __init__(self):
         self.listeners = []
         self.connected_uids = []
-        self.known_uids = []
 
     def clientConnected(self, uid: str):
         for clients in self.connected_uids:
@@ -19,9 +18,10 @@ class MessageAnnouncer:
                 self.connected_uids.remove(x)
 
     def switchNewlyConnected(self, uid: str):
-        for clients in self.connected_uids:
-            if(clients.get('uid') == uid):
-                clients['newlyConnected'] = False           
+        for i in range(len(self.connected_uids)):
+            if(self.connected_uids[i]['uid'] == str(uid)):
+                self.connected_uids[i].pop('newlyConnected')
+                          
 
     def setMessage(self, message: str):
         with open('message.txt', 'w+') as f:
@@ -47,14 +47,12 @@ class MessageAnnouncer:
 
 
     def appendUid(self, uid: str):
-        print(self.known_uids)
-        uidExists = False
-        for known_uid in self.known_uids:
-            if(known_uid == uid):
-                uidExists = True
-
-        if(not uidExists):
-            self.known_uids.append(uid)          
+        with open('uids.txt', 'r') as f:
+            uids = f.read()
+            print("Uids", uids)
+            if(uid not in uids):
+                with open('uids.txt', 'a') as fw:
+                    fw.write(uid + "\n")
 
     def getKnownUids(self):
         return self.known_uids
