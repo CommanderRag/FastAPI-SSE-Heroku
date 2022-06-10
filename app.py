@@ -1,4 +1,4 @@
-import time, sched, datetime, os
+import time, sched, datetime, os, threading
 from fastapi import FastAPI, Request, Header, HTTPException
 from fastapi.responses import HTMLResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
@@ -53,13 +53,16 @@ def forbiddenResponse(request: Request):
     return templates.TemplateResponse('403.html', context={'request': request}, status_code=403)
 
 def pollConnectedClients():
-    #print("Polling!")
-    for x in announcer.connected_uids:
-        lastRefreshed = x.get('lastRefreshed')
-        print(x, lastRefreshed)
-        if(int((time.time() - lastRefreshed)) > 9):
-            announcer.clientDisconnected(x.get('uid'))
-            print("Removing", x)       
+    while True:
+        print("Polling!")
+        for x in announcer.connected_uids:
+            lastRefreshed = x.get('lastRefreshed')
+            print(x, lastRefreshed)
+            if(int((time.time() - lastRefreshed)) > 9):
+                announcer.clientDisconnected(x.get('uid'))
+                print("Removing", x)     
+
+        time.sleep(3)          
 
 async def streamMessage(uid, uids, request):
     while True:
@@ -81,7 +84,7 @@ async def streamMessage(uid, uids, request):
 
             if(messages == None and announcer.getMessage() != None):
                 yield announcer.getMessage()  
-                time.sleep(1)
+                time.sleep(1.2)
                 announcer.clearMessage()  
 
         message = announcer.getMessage()      
@@ -115,7 +118,7 @@ async def stream(request: Request):
 
     with open('uids.txt', 'r') as f:
         uids = f.readlines()
-
+        
         print("Uids", uids)
 
         if(len(uids) == 0 or uid not in uids):
@@ -175,8 +178,9 @@ async def clearUids(request: Request):
         pass
     return PlainTextResponse("Success!")
 
-scheduler.add_job(pollConnectedClients, 'interval', seconds=1)
-scheduler.start()
+
+thread = threading.Timer(9, pollConnectedClients)
+thread.start()
 
 if __name__ == '__main__':
     uvicorn.run(app, host='0.0.0.0', port=os.environ.get('PORT') or 8000)    
