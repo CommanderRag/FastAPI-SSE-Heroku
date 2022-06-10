@@ -47,8 +47,14 @@ class MessageAnnouncer:
 
 
     def appendUid(self, uid: str):
-        if(uid not in self.known_uids):
-            self.known_uids.append(uid)   
+        print(self.known_uids)
+        uidExists = False
+        for known_uid in self.known_uids:
+            if(known_uid == uid):
+                uidExists = True
+
+        if(not uidExists):
+            self.known_uids.append(uid)          
 
     def getKnownUids(self):
         return self.known_uids

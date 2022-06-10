@@ -22,7 +22,6 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 def pollConnectedClients():
     while True:
-        print('Polling!')
         for x in announcer.connected_uids:
             lastRefreshed = x.get('lastRefreshed')
             print(x)
@@ -34,9 +33,12 @@ def pollConnectedClients():
         time.sleep(3)
 
 
-async def queueMessageForNotConnectedClients(message: str):
-    for uid in announcer.getKnownUids():
+def queueMessageForNotConnectedClients(message: str):
+    print("Here 1")
+    for uid in announcer.known_uids:
+        print("Here 2", uid)
         if(uid not in announcer.connected_uids):
+            print("Queueing message", message, "For uid", uid)
             messageq.addToQueue(uid, message)
      
 
@@ -110,11 +112,8 @@ async def generate(request: Request):
     json = await request.json()
 
     message = json.get('message')
-    print(announcer.setMessage(message))
-    print(announcer.getMessage())
 
-
-    await queueMessageForNotConnectedClients(message)
+    queueMessageForNotConnectedClients(message)
 
 
     return PlainTextResponse('Success!')
@@ -126,9 +125,10 @@ async def ping(request: Request, response_class=HTMLResponse):
     if(auth == None or auth != AUTHORIZATION):
         return forbiddenResponse(request)
 
+    queueMessageForNotConnectedClients('Pong!')
+
     announcer.setMessage('Pong!')
 
-    await queueMessageForNotConnectedClients('Pong!')
     
     return PlainTextResponse('Success!')
 
@@ -146,6 +146,7 @@ async def clearUids(request: Request, response_class=HTMLResponse):
 
 
 thread = threading.Thread(target=pollConnectedClients)
-thread.start()
+thread.start()    
+
 
 # uvicorn.run(app)
