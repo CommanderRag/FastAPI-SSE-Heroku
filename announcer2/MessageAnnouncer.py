@@ -20,9 +20,9 @@ class MessageAnnouncer:
                 self.connected_uids.remove(x)
 
     def switchNewlyConnected(self, uid: int):
-        for i in range(len(self.connected_uids)):
-            if(int(self.connected_uids[i]['uid']) == int(uid)):
-                self.connected_uids[i].pop('newlyConnected')
+        for i in self.connected_uids:
+            if(i['uid'] == uid):
+                del i['newlyConnected']
                           
 
     def setMessage(self, message: str):
