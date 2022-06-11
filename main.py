@@ -24,10 +24,9 @@ def pollConnectedClients():
     while True:
         for x in announcer.connected_uids:
             lastRefreshed = x.get('lastRefreshed')
-            print(x)
 
             if(int((time.time() - lastRefreshed)) > DISCONNECT_THRESHOLD): #wait for 6 seconds and announce uid disconnected.
-                announcer.clientDisconnected(x.get('uid'))
+                announcer.clientDisconnected(x['uid'])
                 print("Removing", x)  
 
         time.sleep(3)
@@ -86,12 +85,11 @@ async def streamMessage(uid: int, request: Request):
 
 
         message = announcer.getMessage()
-        print(message)
         
         if(message):
             print("Announcing", message)
             yield message
-            time.sleep(1.2)
+            time.sleep(0.9)
 
             announcer.clearMessage()
 
@@ -113,7 +111,6 @@ async def stream(request: Request):
 
     announcer.appendUid(uid)
 
-    print(str(uid) + " Connected.")
     announcer.clientConnected(int(uid))                
 
     event_generator = streamMessage(uid=uid, request=request)
