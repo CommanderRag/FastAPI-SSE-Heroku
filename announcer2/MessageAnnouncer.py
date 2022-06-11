@@ -44,7 +44,7 @@ class MessageAnnouncer:
 
     def refresh(self, uid: int):
         for x in self.connected_uids:
-            if(x.get('uid') == uid):
+            if(int(x['uid']) == int(uid)):
                 x['lastRefreshed'] = time.time()
 
 
