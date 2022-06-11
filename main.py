@@ -46,23 +46,17 @@ def queueMessageForNotConnectedClients(message: str):
 
 
         for uid in uids:
-            if(uid not in announcer.connected_uids):
-                messageq.addToQueue(uid, message)
-
-    # for uid in announcer.known_uids:
-    #     print("Here 2", uid)
-    #     if(uid not in announcer.connected_uids):
-    #         print("Queueing message", message, "For uid", uid)
-    #         messageq.addToQueue(uid, message)
+            lambda uid : messageq.addToQueue(uid, message) if uid not in announcer.connected_uids else None
      
 
 def forbiddenResponse(request: Request):
     return templates.TemplateResponse('403.html', context={'request': request}, status_code=403)
 
-async def streamMessage(uid: str, request: Request):
+async def streamMessage(uid: int, request: Request):
     while True:
 
         if(await request.is_disconnected()):
+            print(str(uid) + " Disconnected.")
             announcer.clientDisconnected(uid)
             break
 
@@ -110,12 +104,13 @@ async def stream(request: Request):
     auth = request.headers.get('Authorization', None)
     uid = request.headers.get('Code', None)
 
-    if(auth == None or uid == None or auth != AUTHORIZATION):
+    if(auth == None or uid == None or auth != AUTHORIZATION or bool(int(uid)) == False):
         return forbiddenResponse(request)      
 
     announcer.appendUid(uid)
 
-    announcer.clientConnected(uid)                
+    print(str(uid) + " Connected.")
+    announcer.clientConnected(int(uid))                
 
     event_generator = streamMessage(uid=uid, request=request)
     return EventSourceResponse(event_generator)
@@ -125,9 +120,9 @@ async def stream(request: Request):
 async def generate(request: Request):
     json = await request.json()
 
-    message = json.get('message')
 
-    queueMessageForNotConnectedClients(message)
+    announcer.setMessage(str(json))
+    queueMessageForNotConnectedClients(str(json))
 
 
     return PlainTextResponse('Success!')

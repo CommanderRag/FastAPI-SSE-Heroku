@@ -6,20 +6,20 @@ class MessageAnnouncer:
         self.listeners = []
         self.connected_uids = []
 
-    def clientConnected(self, uid: str):
+    def clientConnected(self, uid: int):
         for clients in self.connected_uids:
             if(clients.get('uid') == uid):
                 self.connected_uids.remove(clients)
         self.connected_uids.append({'uid': uid, 'lastRefreshed': time.time(), 'newlyConnected': True})
 
-    def clientDisconnected(self, uid: str):
+    def clientDisconnected(self, uid: int):
         for x in self.connected_uids:
             if(x.get('uid') == uid):
                 self.connected_uids.remove(x)
 
-    def switchNewlyConnected(self, uid: str):
+    def switchNewlyConnected(self, uid: int):
         for i in range(len(self.connected_uids)):
-            if(self.connected_uids[i]['uid'] == str(uid)):
+            if(self.connected_uids[i]['uid'] == uid):
                 self.connected_uids[i].pop('newlyConnected')
                           
 
@@ -40,7 +40,7 @@ class MessageAnnouncer:
         for i in reversed(range(len(self.listeners))):
             self.listeners[i].append(message) 
 
-    def refresh(self, uid: str):
+    def refresh(self, uid: int):
         for x in self.connected_uids:
             if(x.get('uid') == uid):
                 x['lastRefreshed'] = time.time()
