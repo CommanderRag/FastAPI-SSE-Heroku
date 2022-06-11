@@ -3,7 +3,7 @@ from fastapi.responses import HTMLResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sse_starlette.sse import EventSourceResponse
-
+from fastapi.templating import Jinja2Templates
 import time, uvicorn, threading
 from announcer2 import MessageAnnouncer
 from announcer2 import MessageQueue
@@ -18,7 +18,7 @@ messageq = MessageQueue.MessageQueue()
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-
+templates = Jinja2Templates(directory = "templates")
 
 def pollConnectedClients():
     while True:
@@ -97,6 +97,10 @@ async def streamMessage(uid: int, request: Request):
 
 
         time.sleep(1.8)        
+
+@app.get('/')
+async def index(request: Request):
+    return forbiddenResponse(request)
 
 @app.get('/stream', response_class=HTMLResponse)
 async def stream(request: Request):
