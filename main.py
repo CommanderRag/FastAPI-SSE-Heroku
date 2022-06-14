@@ -94,7 +94,6 @@ async def streamMessage(uid: int, request: Request):
 
 
         message = announcer.getMessage()
-        print(message)
         if(message):
             print("Announcing", message)
             yield message
