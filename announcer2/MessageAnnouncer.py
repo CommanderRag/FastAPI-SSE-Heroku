@@ -3,26 +3,30 @@ import time
 class MessageAnnouncer:
 
     def __init__(self):
-        self.listeners = []
+        self.message = None
         self.connected_uids = []
 
     def clientConnected(self, uid: int):
         print(str(uid) + " Connected.")
-        for clients in self.connected_uids:
-            if(clients.get('uid') == uid):
-                self.connected_uids.remove(clients)
         self.connected_uids.append({'uid': uid, 'lastRefreshed': time.time(), 'newlyConnected': True})
 
     def clientDisconnected(self, uid: int):
         print(str(uid) + " Disconnected.")
         for x in self.connected_uids:
-            if(x.get('uid') == uid):
+            if(str(x.get('uid')) == str(uid)):
                 self.connected_uids.remove(x)
+
+    def isNewlyConnected(self, uid: int):
+        for i in self.connected_uids:
+            if(str(i['uid']) == str(uid)):
+                if(i.get('newlyConnected') != None):
+                    return i['newlyConnected']
 
     def switchNewlyConnected(self, uid: int):
         for i in self.connected_uids:
-            if(i['uid'] == uid):
-                del i['newlyConnected']
+            if(str(i['uid']) == str(uid)):
+                if(i.get('newlyConnected') != None):
+                    del i['newlyConnected']
                           
 
     def setMessage(self, message: str):

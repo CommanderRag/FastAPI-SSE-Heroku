@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sse_starlette.sse import EventSourceResponse
 from fastapi.templating import Jinja2Templates
-import time, uvicorn, threading
+import time, uvicorn, threading, json
 from announcer2 import MessageAnnouncer
 from announcer2 import MessageQueue
 
@@ -22,6 +22,9 @@ templates = Jinja2Templates(directory = "templates")
 
 def pollConnectedClients():
     while True:
+        if(len(announcer.connected_uids) == 0):
+            announcer.clearMessage()
+
         for x in announcer.connected_uids:
             lastRefreshed = x.get('lastRefreshed')
 
@@ -43,10 +46,20 @@ def queueMessageForNotConnectedClients(message: str):
             if(uid):
                 uids.append(uid)
 
+        print(uids)
+        # for uid in uids:
+        #     uid = int(uid)
+        #     if uid not in announcer.listeners:
+        #         messageq.postToQueue(uid, message)
+
+        
+        uids = list(map(int, uids))
+        con_uids = [x['uid'] for x in announcer.connected_uids] 
+        con_uids = list(map(int, uids))
 
         for uid in uids:
-            lambda uid : messageq.addToQueue(uid, message) if uid not in announcer.connected_uids else None
-     
+            if(uid not in con_uids):
+                messageq.postToQueue(uid, message)
 
 def forbiddenResponse(request: Request):
     return templates.TemplateResponse('403.html', context={'request': request}, status_code=403)
@@ -60,32 +73,28 @@ async def streamMessage(uid: int, request: Request):
             break
 
         announcer.refresh(uid)
+        if(announcer.isNewlyConnected(uid) == True):
+            data = messageq.getInQueue(uid)
+            print("Data:", data)
+            if(data != None and len(data) != 0):
+                messages = list(data)
 
+                if(len(messages) == 0):
+                    break
 
-        for connected in announcer.connected_uids:
-            connected = dict(connected)
-            con_uid = connected.get('uid')
-            
-                
-            if(con_uid == uid and connected.get('newlyConnected') == True):
-                yield "Welcome!"
-                announcer.switchNewlyConnected(uid)
-                data = messageq.getInQueue(uid)
+                # print(messages)
 
-                if(data != None):
-                    messages = list(data.get('messages'))
-                    if(len(messages) == 0):
-                        break
-                    print(messages)
-                    for i in range(len(messages)):
-                        yield messages[i]
-                        time.sleep(1.2)
+                for i in range(len(messages)):
+                    yield messages[i][1] # index 0 is uid, index 1 is the message.
+                    time.sleep(1.2)
 
-                    messageq.removeFromQueue(uid)    
+                messageq.removeFromQueue(uid) 
+
+            announcer.switchNewlyConnected(uid)
 
 
         message = announcer.getMessage()
-        
+        print(message)
         if(message):
             print("Announcing", message)
             yield message
@@ -120,7 +129,6 @@ async def stream(request: Request):
 @app.post('/generate', response_class=HTMLResponse)
 async def generate(request: Request):
     json = await request.json()
-
 
     announcer.setMessage(str(json))
     queueMessageForNotConnectedClients(str(json))

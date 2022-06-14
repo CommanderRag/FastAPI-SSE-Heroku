@@ -1,34 +1,62 @@
+import requests
+
+POST_URL = 'https://brass-cobra-cape.wayscript.cloud/postQueue'
+FETCH_URL = 'https://brass-cobra-cape.wayscript.cloud/getQueue'
+DELETE_URL = 'https://brass-cobra-cape.wayscript.cloud/clearUidQueue'
+
+headers = {
+    'Content-Type': 'application/json',
+    'Authorization': 'za-warudo'
+}
+
 class MessageQueue:
 
-    def __init__(self):
-        self.queue = []
 
-    def addToQueue(self, uid: str, message:str):
-        print("Adding to queue", uid, message)
-        alreadyInQueue = False
-        for i in range(len(self.queue)):
+    def postToQueue(self, uid: int, message:str):
+        print("Posting to queue", uid, message)
+        
 
-            if(self.queue[i]['uid'] == uid):
-                self.queue[i]['messages'].append(str(message)) 
-                alreadyInQueue = True
+        data = {
+            'uid': uid,
+            'message': message
+        }
 
+        try: 
+            r = requests.post(POST_URL, headers=headers, json=data)
+            print(r.status_code)
+            r.close()
 
-        if(alreadyInQueue == False):
-            print("Adding", message)
-            self.queue.append({'uid': str(uid), 'messages': [str(message)]})
+        except Exception as e:
+            return -1    
 
-    def getInQueue(self, uid):
-        for msg in self.queue:
-            msg = dict(msg)
-            if(msg.get('uid') == uid):
-                return msg 
+    def getInQueue(self, uid: int):
 
-        return None        
+        print("Fetching queue for uid: ", uid)
 
-    def removeFromQueue(self, uid):
-        for i in self.queue:
-            if(i.get('uid') == uid):
-                self.queue.remove(i)
+        data = {
+            'uid': uid,
+        }
 
-    def clearQueue(self):
-        self.queue.clear()
+        try:
+            r = requests.post(FETCH_URL, headers=headers, json=data)
+            data = r.json()
+            print(r.status_code)
+            r.close() 
+    
+            return data
+
+        except Exception as e:
+            return -1    
+
+    def removeFromQueue(self, uid: int):
+
+        data = {'uid': uid}
+
+        try:
+        
+            r = requests.post(DELETE_URL, headers=headers, json=data)
+            print(r.status_code)
+            r.close()
+
+        except Exception as e:
+            return -1    
