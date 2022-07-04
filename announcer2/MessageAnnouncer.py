@@ -8,7 +8,7 @@ class MessageAnnouncer:
 
     def clientConnected(self, uid: int):
         print(str(uid) + " Connected.")
-        self.connected_uids.append({'uid': uid, 'lastRefreshed': time.time(), 'newlyConnected': True})
+        self.connected_uids.append({'uid': uid, 'lastRefreshed': int(time.time()), 'newlyConnected': True})
 
     def clientDisconnected(self, uid: int):
         print(str(uid) + " Disconnected.")

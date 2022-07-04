@@ -1,8 +1,9 @@
 import requests
+import sqlite3
 
-POST_URL = 'https://brass-cobra-cape.wayscript.cloud/postQueue'
-FETCH_URL = 'https://brass-cobra-cape.wayscript.cloud/getQueue'
-DELETE_URL = 'https://brass-cobra-cape.wayscript.cloud/clearUidQueue'
+# POST_URL = 'https://brass-cobra-cape.wayscript.cloud/postQueue'
+# FETCH_URL = 'https://brass-cobra-cape.wayscript.cloud/getQueue'
+# DELETE_URL = 'https://brass-cobra-cape.wayscript.cloud/clearUidQueue'
 
 headers = {
     'Content-Type': 'application/json',
@@ -16,47 +17,53 @@ class MessageQueue:
         print("Posting to queue", uid, message)
         
 
-        data = {
-            'uid': uid,
-            'message': message
-        }
+        try:
+            with sqlite3.connect('queue.db') as con:
+                cur = con.cursor()
+                cur.execute('INSERT INTO Queue (uid, message) VALUES (?,?)', [int(uid), message])
 
-        try: 
-            r = requests.post(POST_URL, headers=headers, json=data)
-            print(r.status_code)
-            r.close()
+                con.commit()
 
         except Exception as e:
-            return -1    
+            print(str(e))
+            con.rollback()
+
+        finally:
+            con.close()      
 
     def getInQueue(self, uid: int):
 
         print("Fetching queue for uid: ", uid)
-
-        data = {
-            'uid': uid,
-        }
-
+        messages = None
+        
         try:
-            r = requests.post(FETCH_URL, headers=headers, json=data)
-            data = r.json()
-            print(r.status_code)
-            r.close() 
-    
-            return data
+            with sqlite3.connect('queue.db') as con:
+                cur = con.cursor()
+                cur.execute('SELECT * FROM Queue WHERE uid=?', [int(uid)])
+                messages = cur.fetchall()
 
         except Exception as e:
-            return -1    
+            print(str(e))
+            con.rollback()
+
+        finally:
+            con.close()
+        
+        return messages
 
     def removeFromQueue(self, uid: int):
 
-        data = {'uid': uid}
+
 
         try:
-        
-            r = requests.post(DELETE_URL, headers=headers, json=data)
-            print(r.status_code)
-            r.close()
-
+            with sqlite3.connect('queue.db') as con:
+                cur = con.cursor()
+                cur.execute('DELETE FROM Queue WHERE uid=?', [int(uid)])
+                con.commit()
+            
         except Exception as e:
-            return -1    
+            print(str(e))
+            con.rollback()
+
+        finally:
+            con.close()

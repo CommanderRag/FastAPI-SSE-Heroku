@@ -10,7 +10,7 @@ from announcer2 import MessageQueue
 
 AUTHORIZATION = 'za-warudo'
 
-DISCONNECT_THRESHOLD = 6 # 6 seconds
+DISCONNECT_THRESHOLD = 60 # 60 seconds, i.e 1 minute
 
 announcer = MessageAnnouncer.MessageAnnouncer()
 messageq = MessageQueue.MessageQueue()
@@ -24,7 +24,6 @@ def pollConnectedClients():
     while True:
         if(len(announcer.connected_uids) == 0):
             announcer.clearMessage()
-
         for x in announcer.connected_uids:
             lastRefreshed = x.get('lastRefreshed')
 
@@ -54,11 +53,13 @@ def queueMessageForNotConnectedClients(message: str):
 
         
         uids = list(map(int, uids))
+        print("Connected uids", announcer.connected_uids)
         con_uids = [x['uid'] for x in announcer.connected_uids] 
-        con_uids = list(map(int, uids))
-
+        con_uids = list(map(int, con_uids))
+        print(uids, con_uids)
         for uid in uids:
             if(uid not in con_uids):
+                print("Queueing for uid", uid)
                 messageq.postToQueue(uid, message)
 
 def forbiddenResponse(request: Request):
@@ -68,7 +69,7 @@ async def streamMessage(uid: int, request: Request):
     while True:
 
         if(await request.is_disconnected()):
-            print(str(uid) + " Disconnected.")
+            print(str(uid) + " Disconnected..")
             announcer.clientDisconnected(uid)
             break
 
@@ -96,8 +97,13 @@ async def streamMessage(uid: int, request: Request):
         message = announcer.getMessage()
         if(message):
             print("Announcing", message)
-            yield message
-            time.sleep(0.9)
+            try:
+                yield message
+                time.sleep(0.9)
+
+            except Exception as e:
+                print(str(e))
+                messageq.postToQueue(uid, message)
 
             announcer.clearMessage()
 
