@@ -169,7 +169,5 @@ async def clearUids(request: Request, response_class=HTMLResponse):
 
 
 thread = threading.Thread(target=pollConnectedClients)
-thread.start()    
-
-
+thread.start()
 # uvicorn.run(app)

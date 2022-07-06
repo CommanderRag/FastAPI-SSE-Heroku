@@ -49,13 +49,20 @@ class MessageAnnouncer:
     def refresh(self, uid: int):
         for x in self.connected_uids:
             if(int(x['uid']) == int(uid)):
-                x['lastRefreshed'] = time.time()
+                x['lastRefreshed'] = int(time.time())
 
 
     def appendUid(self, uid: str):
         with open('uids.txt', 'r') as f:
-            uids = f.read()
-            print("Uids", uids)
+            readUids = f.read()
+            readUids = readUids.split('\n')
+
+            uids = []
+            for uid in readUids:
+                if(uid):
+                    uids.append(uid)
+
+            print(uids)
             if(uid not in uids):
                 with open('uids.txt', 'a') as fw:
                     fw.write(uid + "\n")
