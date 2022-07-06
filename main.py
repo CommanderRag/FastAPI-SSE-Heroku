@@ -10,7 +10,7 @@ from announcer2 import MessageQueue
 
 AUTHORIZATION = 'za-warudo'
 
-DISCONNECT_THRESHOLD = 30 # 60 seconds, i.e 1 minute
+DISCONNECT_THRESHOLD = 12 # 60 seconds, i.e 1 minute
 
 announcer = MessageAnnouncer.MessageAnnouncer()
 messageq = MessageQueue.MessageQueue()

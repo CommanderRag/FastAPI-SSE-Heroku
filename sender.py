@@ -6,4 +6,4 @@ while True:
     if message == '':
         break
     msg_json = {'message': message}
-    requests.post('http://localhost:8000/generate', json=msg_json, headers={'Authorization': 'za-warudo', 'Content-Type': 'application/json'})
+    requests.post('https://fastapi-sse-heroku.naxeq.repl.co/generate', json=msg_json, headers={'Authorization': 'za-warudo', 'Content-Type': 'application/json'})
